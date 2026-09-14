@@ -1,6 +1,8 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -28,6 +30,11 @@ body{
     font-family:Arial, sans-serif;
 }
 
+
+/* ==============================
+   TOP CONTROLS
+============================== */
+
 .controls{
     position:fixed;
     top:12px;
@@ -41,7 +48,9 @@ body{
     gap:6px;
 
     background:rgba(255,255,255,0.92);
+
     padding:6px;
+
     border-radius:8px;
 
     box-shadow:0 3px 12px rgba(0,0,0,0.2);
@@ -49,13 +58,17 @@ body{
 
 button{
     border:none;
+
     border-radius:5px;
+
     padding:9px 13px;
 
     background:white;
+
     color:#222;
 
     font-size:14px;
+
     cursor:pointer;
 
     transition:0.2s;
@@ -69,26 +82,46 @@ button:active{
     transform:scale(0.96);
 }
 
+
+/* ==============================
+   BOOK AREA
+============================== */
+
 #book-container{
     width:100%;
     height:100%;
 
     display:flex;
+
     align-items:center;
+
     justify-content:center;
 
     padding:55px 20px 35px 20px;
 }
 
+
+/* ==============================
+   BOOK
+============================== */
+
 #book{
     width:960px;
     height:680px;
+
     transform-origin:center center;
 }
 
+
+/* ==============================
+   PAGE
+============================== */
+
 .page{
     background:#ffffff;
+
     overflow:hidden;
+
     width:100%;
     height:100%;
 }
@@ -96,17 +129,28 @@ button:active{
 .page img{
     width:100%;
     height:100%;
+
     object-fit:cover;
+
     display:block;
+
     user-select:none;
+
     pointer-events:none;
+
     -webkit-user-drag:none;
 }
+
+
+/* ==============================
+   PAGE NUMBER
+============================== */
 
 #pageInfo{
     position:fixed;
 
     bottom:10px;
+
     left:50%;
 
     transform:translateX(-50%);
@@ -120,52 +164,77 @@ button:active{
     border-radius:20px;
 
     font-size:14px;
+
     font-weight:bold;
 
     box-shadow:0 2px 8px rgba(0,0,0,0.15);
 }
 
+
+/* ==============================
+   MOBILE
+============================== */
+
 @media(max-width:768px){
 
     .controls{
+
         top:auto;
+
         bottom:48px;
 
         width:auto;
+
         max-width:95vw;
 
         padding:5px;
     }
 
     button{
+
         padding:7px 9px;
+
         font-size:11px;
     }
 
     #book-container{
+
         padding:20px 5px 90px 5px;
     }
 
     #book{
+
         width:420px;
+
         height:594px;
 
         max-width:94vw;
+
         max-height:78vh;
     }
 
     #pageInfo{
+
         bottom:10px;
+
         font-size:12px;
+
         padding:6px 12px;
     }
 
 }
 
 </style>
+
 </head>
 
+
 <body>
+
+
+<!-- ==============================
+     CONTROLS
+============================== -->
 
 <div class="controls">
 
@@ -187,11 +256,21 @@ button:active{
 
 </div>
 
+
+<!-- ==============================
+     MAGAZINE
+============================== -->
+
 <div id="book-container">
 
     <div id="book"></div>
 
 </div>
+
+
+<!-- ==============================
+     PAGE NUMBER
+============================== -->
 
 <div id="pageInfo">
 
@@ -199,28 +278,35 @@ button:active{
 
 </div>
 
+
 <script>
+
+
+/* ==============================
+   SETTINGS
+============================== */
 
 const TOTAL_PAGES = 98;
 
 let zoom = 1;
 
 
-/* =========================================
+/* ==============================
    PAGE TURN SOUND
-========================================= */
+============================== */
 
 const flipSound = new Audio("pageturn(1).wav");
 
 flipSound.volume = 0.35;
+
 flipSound.preload = "auto";
 
 let audioUnlocked = false;
 
 
-/* =========================================
-   UNLOCK AUDIO AFTER USER INTERACTION
-========================================= */
+/* ==============================
+   UNLOCK AUDIO
+============================== */
 
 function unlockAudio(){
 
@@ -228,49 +314,52 @@ function unlockAudio(){
         return;
     }
 
-    flipSound.muted = true;
-
     flipSound.play()
-        .then(() => {
+        .then(function(){
 
             flipSound.pause();
+
             flipSound.currentTime = 0;
-            flipSound.muted = false;
 
             audioUnlocked = true;
 
         })
-        .catch(() => {
+        .catch(function(){
 
-            flipSound.muted = false;
+            audioUnlocked = false;
 
         });
 
 }
 
 
-/* =========================================
+/* ==============================
    PLAY PAGE TURN SOUND
-========================================= */
+============================== */
 
 function playFlipSound(){
 
     if(!audioUnlocked){
+
         return;
+
     }
 
     flipSound.pause();
 
     flipSound.currentTime = 0;
 
-    flipSound.play().catch(() => {});
+    flipSound.play()
+        .catch(function(){
+
+        });
 
 }
 
 
-/* =========================================
-   UNLOCK AUDIO ON FIRST USER INTERACTION
-========================================= */
+/* ==============================
+   FIRST USER INTERACTION
+============================== */
 
 document.addEventListener(
     "click",
@@ -285,110 +374,141 @@ document.addEventListener(
 );
 
 
-/* =========================================
+/* ==============================
    CREATE PAGEFLIP
-========================================= */
+============================== */
 
-const bookElement = document.getElementById("book");
-
-const pageFlip = new St.PageFlip(
-    document.getElementById("book"),
-    {
-        width:480,
-        height:680,
-
-        size:"fixed",
-
-        minWidth:280,
-        maxWidth:480,
-
-        minHeight:397,
-        maxHeight:680,
-
-        showCover:true,
-
-        usePortrait:false,
-
-        autoSize:false,
-
-        startPage:0,
-
-        drawShadow:true,
-
-        maxShadowOpacity:0.25,
-
-        flippingTime:650,
-
-        mobileScrollSupport:true,
-
-        useMouseEvents:true
-    }
-);
+const bookElement =
+    document.getElementById("book");
 
 
-/* =========================================
+const pageFlip =
+    new St.PageFlip(
+
+        document.getElementById("book"),
+
+        {
+
+            width:480,
+
+            height:680,
+
+            size:"fixed",
+
+            minWidth:280,
+
+            maxWidth:480,
+
+            minHeight:397,
+
+            maxHeight:680,
+
+            showCover:true,
+
+            usePortrait:false,
+
+            autoSize:false,
+
+            startPage:0,
+
+            drawShadow:true,
+
+            maxShadowOpacity:0.25,
+
+            flippingTime:650,
+
+            mobileScrollSupport:true,
+
+            useMouseEvents:true
+
+        }
+
+    );
+
+
+/* ==============================
    CREATE 98 JPG PAGES
-========================================= */
+============================== */
 
 const pages = [];
 
 
-for(let i = 1; i <= TOTAL_PAGES; i++){
+for(
+    let i = 1;
+    i <= TOTAL_PAGES;
+    i++
+){
 
-    const page = document.createElement("div");
+    const page =
+        document.createElement("div");
+
 
     page.className = "page";
 
 
-    const image = document.createElement("img");
+    const image =
+        document.createElement("img");
 
-    image.src = `${i}.jpg`;
 
-    image.alt = `RIT Spark Magazine Page ${i}`;
+    image.src =
+        `${i}.jpg`;
+
+
+    image.alt =
+        `RIT Spark Magazine Page ${i}`;
+
 
     image.draggable = false;
 
 
-    image.onerror = function(){
+    image.onerror =
+        function(){
 
-        console.error(
-            `Missing image: ${i}.jpg`
-        );
+            console.error(
+                `Missing image: ${i}.jpg`
+            );
 
-        this.style.display = "none";
+            this.style.display =
+                "none";
 
-    };
+        };
 
 
     page.appendChild(image);
+
 
     pages.push(page);
 
 }
 
 
-/* =========================================
+/* ==============================
    LOAD PAGES
-========================================= */
+============================== */
 
 pageFlip.loadFromHTML(pages);
 
 
-/* =========================================
+/* ==============================
    PAGE FLIP EVENT
-========================================= */
+============================== */
 
 pageFlip.on(
     "flip",
     function(e){
 
-        const currentPage = e.data + 1;
+        const currentPage =
+            e.data + 1;
 
-        document.getElementById("pageNo").innerText =
+
+        document.getElementById(
+            "pageNo"
+        ).innerText =
             Math.min(
                 currentPage,
                 TOTAL_PAGES
             );
+
 
         playFlipSound();
 
@@ -396,9 +516,9 @@ pageFlip.on(
 );
 
 
-/* =========================================
+/* ==============================
    PREVIOUS PAGE
-========================================= */
+============================== */
 
 function prevPage(){
 
@@ -409,9 +529,9 @@ function prevPage(){
 }
 
 
-/* =========================================
+/* ==============================
    NEXT PAGE
-========================================= */
+============================== */
 
 function nextPage(){
 
@@ -422,13 +542,14 @@ function nextPage(){
 }
 
 
-/* =========================================
+/* ==============================
    ZOOM IN
-========================================= */
+============================== */
 
 function zoomIn(){
 
     zoom += 0.1;
+
 
     if(zoom > 2){
 
@@ -436,19 +557,21 @@ function zoomIn(){
 
     }
 
+
     bookElement.style.transform =
         `scale(${zoom})`;
 
 }
 
 
-/* =========================================
+/* ==============================
    ZOOM OUT
-========================================= */
+============================== */
 
 function zoomOut(){
 
     zoom -= 0.1;
+
 
     if(zoom < 0.7){
 
@@ -456,15 +579,16 @@ function zoomOut(){
 
     }
 
+
     bookElement.style.transform =
         `scale(${zoom})`;
 
 }
 
 
-/* =========================================
+/* ==============================
    KEYBOARD CONTROLS
-========================================= */
+============================== */
 
 document.addEventListener(
     "keydown",
@@ -491,9 +615,9 @@ document.addEventListener(
 );
 
 
-/* =========================================
+/* ==============================
    TOUCH PINCH ZOOM
-========================================= */
+============================== */
 
 let initialDistance = 0;
 
@@ -532,10 +656,12 @@ document.addEventListener(
         if(initialDistance > 0){
 
             const scaleChange =
-                distance / initialDistance;
+                distance /
+                initialDistance;
 
 
-            zoom *= scaleChange;
+            zoom *=
+                scaleChange;
 
 
             if(zoom < 0.7){
@@ -558,12 +684,15 @@ document.addEventListener(
         }
 
 
-        initialDistance = distance;
+        initialDistance =
+            distance;
 
     },
+
     {
         passive:false
     }
+
 );
 
 
@@ -577,9 +706,9 @@ document.addEventListener(
 );
 
 
-/* =========================================
-   RESET PAGEFLIP ON WINDOW RESIZE
-========================================= */
+/* ==============================
+   WINDOW RESIZE
+============================== */
 
 window.addEventListener(
     "resize",
@@ -590,8 +719,11 @@ window.addEventListener(
     }
 );
 
+
 </script>
 
-</body>
-</html>
 
+</body>
+
+</html>
+```
