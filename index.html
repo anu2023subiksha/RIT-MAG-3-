@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>RIT Spark Magazine</title>
+
+<script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.min.js"></script>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html,
+body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+}
+
+body{
+    background:#cfcfcf;
+    font-family:Arial, sans-serif;
+}
+
+/* TOP CONTROLS */
+
+.controls{
+    position:fixed;
+    top:12px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:1000;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+
+    background:rgba(255,255,255,0.92);
+    padding:6px;
+    border-radius:8px;
+
+    box-shadow:0 3px 12px rgba(0,0,0,0.2);
+}
+
+button{
+    border:none;
+    border-radius:5px;
+    padding:9px 13px;
+
+    background:white;
+    color:#222;
+
+    font-size:14px;
+    cursor:pointer;
+
+    transition:0.2s;
+}
+
+button:hover{
+    background:#eeeeee;
+}
+
+button:active{
+    transform:scale(0.96);
+}
+
+/* BOOK AREA */
+
+#book-container{
+    width:100%;
+    height:100%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:55px 20px 35px 20px;
+}
+
+/* PAGEFLIP CONTAINER */
+
+#book{
+    width:960px;
+    height:680px;
+    transform-origin:center center;
+}
+
+/* INDIVIDUAL PAGE */
+
+.page{
+    background:#ffffff;
+    overflow:hidden;
+    width:100%;
+    height:100%;
+}
+
+.page img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    user-select:none;
+    pointer-events:none;
+    -webkit-user-drag:none;
+}
+
+/* PAGE NUMBER */
+
+#pageInfo{
+    position:fixed;
+
+    bottom:10px;
+    left:50%;
+
+    transform:translateX(-50%);
+
+    z-index:1000;
+
+    background:rgba(255,255,255,0.95);
+
+    padding:7px 15px;
+
+    border-radius:20px;
+
+    font-size:14px;
+    font-weight:bold;
+
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* MOBILE */
+
+@media(max-width:768px){
+
+    .controls{
+        top:auto;
+        bottom:48px;
+
+        width:auto;
+
+        max-width:95vw;
+
+        padding:5px;
+    }
+
+    button{
+        padding:7px 9px;
+        font-size:11px;
+    }
+
+    #book-container{
+        padding:20px 5px 90px 5px;
+    }
+
+    #book{
+        width:420px;
+        height:594px;
+
+        max-width:94vw;
+        max-height:78vh;
+    }
+
+    #pageInfo{
+        bottom:10px;
+        font-size:12px;
+        padding:6px 12px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- CONTROLS -->
+
+<div class="controls">
+
+    <button onclick="prevPage()">
+        ◀ Prev
+    </button>
+
+    <button onclick="nextPage()">
+        Next ▶
+    </button>
+
+    <button onclick="zoomOut()">
+        ➖
+    </button>
+
+    <button onclick="zoomIn()">
+        ➕
+    </button>
+
+</div>
+
+
+<!-- MAGAZINE -->
+
+<div id="book-container">
+
+    <div id="book"></div>
+
+</div>
+
+
+<!-- PAGE NUMBER -->
+
+<div id="pageInfo">
+
+    Page <span id="pageNo">1</span> / 98
+
+</div>
+
+
+<script>
+
+/* =========================================
+   SETTINGS
+========================================= */
+
+const TOTAL_PAGES = 98;
+
+let zoom = 1;
+
+
+/* =========================================
+   PAGE TURN SOUND
+========================================= */
+
+const flipSound = new Audio("pageturn.wav");
+
+flipSound.volume = 0.35;
+
+
+function playFlipSound(){
+
+    const sound = flipSound.cloneNode();
+
+    sound.volume = 0.35;
+
+    sound.play().catch(() => {});
+
+}
+
+
+/* =========================================
+   CREATE PAGEFLIP
+========================================= */
+
+const bookElement = document.getElementById("book");
+
+
+const pageFlip = new St.PageFlip(
+    document.getElementById("book"),
+    {
+        width: 480,
+        height: 680,
+
+        size: "fixed",
+
+        minWidth: 280,
+        maxWidth: 480,
+
+        minHeight: 397,
+        maxHeight: 680,
+
+        showCover: true,
+
+        usePortrait: false,
+
+        autoSize: false,
+
+        startPage: 0,
+
+        drawShadow: true,
+
+        maxShadowOpacity: 0.25,
+
+        flippingTime: 650,
+
+        mobileScrollSupport: true,
+
+        useMouseEvents: true
+    }
+);
+
+/* =========================================
+   CREATE 98 JPG PAGES
+========================================= */
+
+const pages = [];
+
+
+for(let i = 1; i <= TOTAL_PAGES; i++){
+
+    const page = document.createElement("div");
+
+    page.className = "page";
+
+
+    const image = document.createElement("img");
+
+    /*
+     * Your files are:
+     *
+     * 1.jpg
+     * 2.jpg
+     * 3.jpg
+     * ...
+     * 98.jpg
+     */
+
+    image.src = `${i}.jpg`;
+
+    image.alt = `RIT Spark Magazine Page ${i}`;
+
+    image.draggable = false;
+
+
+    /*
+     * If an image is missing,
+     * show a simple blank page instead
+     */
+
+    image.onerror = function(){
+
+        console.error(`Missing image: ${i}.jpg`);
+
+        this.style.display = "none";
+
+    };
+
+
+    page.appendChild(image);
+
+    pages.push(page);
+
+}
+
+
+/* =========================================
+   LOAD PAGES
+========================================= */
+
+pageFlip.loadFromHTML(pages);
+
+
+/* =========================================
+   PAGE FLIP EVENT
+========================================= */
+
+pageFlip.on("flip", function(e){
+
+    const currentPage = e.data + 1;
+
+    document.getElementById("pageNo").innerText =
+        Math.min(currentPage, TOTAL_PAGES);
+
+    playFlipSound();
+
+});
+
+
+/* =========================================
+   PREVIOUS PAGE
+========================================= */
+
+function prevPage(){
+
+    pageFlip.flipPrev();
+
+}
+
+
+/* =========================================
+   NEXT PAGE
+========================================= */
+
+function nextPage(){
+
+    pageFlip.flipNext();
+
+}
+
+
+/* =========================================
+   ZOOM IN
+========================================= */
+
+function zoomIn(){
+
+    zoom += 0.1;
+
+    if(zoom > 2){
+
+        zoom = 2;
+
+    }
+
+    bookElement.style.transform =
+        `scale(${zoom})`;
+
+}
+
+
+/* =========================================
+   ZOOM OUT
+========================================= */
+
+function zoomOut(){
+
+    zoom -= 0.1;
+
+    if(zoom < 0.7){
+
+        zoom = 0.7;
+
+    }
+
+    bookElement.style.transform =
+        `scale(${zoom})`;
+
+}
+
+
+/* =========================================
+   KEYBOARD CONTROLS
+========================================= */
+
+document.addEventListener("keydown", function(e){
+
+    if(e.key === "ArrowRight"){
+
+        nextPage();
+
+    }
+
+
+    if(e.key === "ArrowLeft"){
+
+        prevPage();
+
+    }
+
+});
+
+
+/* =========================================
+   TOUCH PINCH ZOOM
+========================================= */
+
+let initialDistance = 0;
+
+
+document.addEventListener(
+    "touchmove",
+    function(e){
+
+        if(e.touches.length !== 2){
+
+            return;
+
+        }
+
+
+        e.preventDefault();
+
+
+        const dx =
+            e.touches[0].clientX -
+            e.touches[1].clientX;
+
+
+        const dy =
+            e.touches[0].clientY -
+            e.touches[1].clientY;
+
+
+        const distance =
+            Math.sqrt(
+                dx * dx +
+                dy * dy
+            );
+
+
+        if(initialDistance > 0){
+
+            const scaleChange =
+                distance / initialDistance;
+
+
+            zoom *= scaleChange;
+
+
+            if(zoom < 0.7){
+
+                zoom = 0.7;
+
+            }
+
+
+            if(zoom > 2){
+
+                zoom = 2;
+
+            }
+
+
+            bookElement.style.transform =
+                `scale(${zoom})`;
+
+        }
+
+
+        initialDistance = distance;
+
+    },
+    {
+        passive:false
+    }
+);
+
+
+document.addEventListener(
+    "touchend",
+    function(){
+
+        initialDistance = 0;
+
+    }
+);
+
+
+/* =========================================
+   RESET ZOOM WHEN WINDOW CHANGES
+========================================= */
+
+window.addEventListener(
+    "resize",
+    function(){
+
+        pageFlip.update();
+
+    }
+);
+
+</script>
+
+</body>
+</html>
